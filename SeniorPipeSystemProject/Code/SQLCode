@@ -1,0 +1,2752 @@
+-- ***********************************************
+-- Kurt A Vedros
+-- Database to upload the query to
+-- ***********************************************
+USE CS4488_Fall2018_Prod
+GO
+
+--GRANT EXECUTE TO SoftwareAccessAccount
+--GO
+
+-- ***********************************************
+-- Kurt A Vedros
+-- Database Table deletion "CAREFULL"
+-- This is used to be able to create the first Query 
+-- to database without a lot of ALTER calls and inability
+-- to see full query.
+-- ***********************************************
+-- Select * FROM Pipes
+--SELECT * FROM [Systems]
+
+DROP TABLE GridsToParts
+--DROP TABLE ConnectionToParts
+DROP TABLE SystemToClients
+DROP TABLE Grids
+DROP TABLE Clients
+DROP TABLE Systems
+DROP TABLE PartToParts
+DROP TABLE Assessments
+DROP TABLE Contents
+DROP TABLE SensorToValues
+DROP TABLE [Values]
+DROP TABLE Readings
+DROP TABLE Sensors
+DROP TABLE Parts
+DROP TABLE Sources
+DROP TABLE Pipes
+DROP TABLE Tanks
+DROP TABLE Tubes
+DROP TABLE Grades
+DROP TABLE Materials
+--DROP TABLE Fittings
+DROP TABLE Splitters
+--DROP TABLE Plugs
+DROP TABLE Converters
+DROP TABLE Valves
+DROP TABLE Exits
+DROP TABLE Pumps
+DROP TABLE Cords
+DROP TABLE Switches
+DROP TABLE SwitchBoxes
+DROP TABLE FlowRegulators
+--DROP TABLE Transporters
+--DROP TABLE TransporterToParts
+--DROP TABLE Connections
+DROP TABLE Pictures
+
+
+-- ***********************************************
+-- Kurt A Vedros
+-- Database Table creation
+-- ***********************************************
+
+-- System Section
+CREATE TABLE Systems 
+(
+	SystemID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+	, Mutex bit
+)
+
+CREATE TABLE Grids
+(
+	GridID int IDENTITY (1,1) PRIMARY KEY
+	, SystemID int NOT NULL CONSTRAINT GridsToSystem_Name FOREIGN KEY (SystemID) REFERENCES Systems(SystemID)
+	, [Name] nvarchar(20)
+)
+
+-- Parts Section
+--			SOURCES, EXITS
+CREATE TABLE Sources
+(
+	SourceID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+)
+
+CREATE TABLE Exits
+(
+	ExitID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+)
+
+--		Plumbing Sectiion
+--			PIPEING INFO
+CREATE TABLE Grades
+(
+	GradeID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar(35)
+	, MinYieldStr float
+	, MaxYieldStr float
+	, MinTensileStr float
+	, MaxTensileStr float
+)
+
+CREATE TABLE Materials
+(
+	MaterialID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+)
+
+--			PIPES, TUBES, TANKS
+CREATE TABLE Pipes
+(
+	PipeID int IDENTITY (1,1) PRIMARY KEY
+	, GradeID int NOT NULL CONSTRAINT PipesToGrade_Name FOREIGN KEY (GradeID) REFERENCES Grades(GradeID)
+	, MaterialID int NOT NULL CONSTRAINT PipesToMaterial_Name FOREIGN KEY (MaterialID) REFERENCES Materials(MaterialID)
+	, [Name] nvarchar (20)
+	, Diameter float
+	, Distance float
+)
+
+CREATE TABLE Tanks
+(
+	TankID int IDENTITY (0,1) PRIMARY KEY
+	, GradeID int NOT NULL CONSTRAINT TanksToGrade_Name FOREIGN KEY (GradeID) REFERENCES Grades(GradeID)
+	, MaterialID int NOT NULL CONSTRAINT TanksToMaterial_Name FOREIGN KEY (MaterialID) REFERENCES Materials(MaterialID)
+	, [Name] nvarchar(20)
+	, Diameter float
+	, Distance float
+)
+
+CREATE TABLE Tubes
+(
+	TubeID int IDENTITY (0,1) PRIMARY KEY
+	, GradeID int NOT NULL CONSTRAINT TubesToGrade_Name FOREIGN KEY (GradeID) REFERENCES Grades(GradeID)
+	, MaterialID int NOT NULL CONSTRAINT TubesToMaterial_Name FOREIGN KEY (MaterialID) REFERENCES Materials(MaterialID)
+	, [Name] nvarchar (20)
+	, Diameter float
+	, Distance float
+)
+
+--			FITTINGS
+CREATE TABLE Splitters
+(
+	SplitterID int IDENTITY (0,1) PRIMARY KEY
+	, [NAME] nvarchar (20)
+	, NumberOFSplits int
+)
+
+/*
+CREATE TABLE Plugs
+(
+	PlugID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar (20)
+)
+*/
+
+CREATE TABLE Converters
+(
+	ConverterID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar (20) 
+	, FromDiameter float
+	, ToDiameter float
+)
+
+/*
+CREATE TABLE Fittings
+(
+	FittingID int IDENTITY (1,1) PRIMARY KEY
+	, SplitterID int NOT NULL CONSTRAINT FittingsToSplitter_Name FOREIGN KEY (SplitterID) REFERENCES Splitters(SplitterID)
+	--, PlugID int NOT NULL CONSTRAINT FittingsToPlug_Name FOREIGN KEY (PlugID) REFERENCES Plugs(PlugID)
+	, ConverterID int NOT NULL CONSTRAINT FittingsToConverter_Name FOREIGN KEY (ConverterID) REFERENCES Converters(ConverterID)
+	, TransporterID int NOT NULL CONSTRAINT FittingsToTransporter_Name FOREIGN KEY (TransporterID) REFERENCES Transporters(TransporterID)
+)
+*/
+
+--			FLOWREGULATORS< VALVES
+CREATE TABLE FlowRegulators
+(
+	FlowRegulatorID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+	, IsOpen bit
+)
+
+CREATE TABLE Valves
+(
+	ValveID int IDENTITY (0,1) PRIMARY KEY
+	, FlowRegulatorID int NOT NULL CONSTRAINT ValvesToFlowRegulator_Name FOREIGN KEY (FlowRegulatorID) REFERENCES FlowRegulators(FlowRegulatorID)
+	, [Name] nvarchar(20)
+)
+
+--			PUMPS
+CREATE TABLE Pumps
+(
+	PumpID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+	, VerticalSuctionLift float
+	, MaximumHeadLift float
+)
+
+--		Electical 
+CREATE TABLE Cords
+(
+	CordID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+	, [Length] float
+	, VoltageDropRate float
+)
+
+CREATE TABLE SwitchBoxes
+(
+	SwitchBoxID int IDENTITY (0,1) PRIMARY KEY
+	, [Name] nvarchar(20)
+)
+
+CREATE TABLE Switches
+(
+	SwitchID int IDENTITY (0,1) PRIMARY KEY
+	, SwitchBoxID int NOT NULL CONSTRAINT SwitchesToSwitchBox_Name FOREIGN KEY (SwitchBoxID) REFERENCES SwitchBoxes(SwitchBoxID)
+	, FlowRegulatorID int NOT NULL CONSTRAINT SwitchesToFlowRegulator_Name FOREIGN KEY (FlowRegulatorID) REFERENCES FlowRegulators(FlowRegulatorID)
+	, [Name] nvarchar(20)
+)
+
+CREATE TABLE Parts
+(
+	PartID int IDENTITY (1,1) PRIMARY KEY
+	, SourceID int NOT NULL CONSTRAINT PartsToSource_Name FOREIGN KEY (SourceID) REFERENCES Sources(SourceID)
+	, ExitID int NOT NULL CONSTRAINT PartsToExit_Name FOREIGN KEY (ExitID) REFERENCES Exits(ExitID)
+	, PipeID int NOT NULL CONSTRAINT PartsToPipe_Name FOREIGN KEY (PipeID) REFERENCES Pipes(PipeID)
+	, TankID int NOT NULL CONSTRAINT PartsToTank_Name FOREIGN KEY (TankID) REFERENCES Tanks(tankID)
+	, TubeID int NOT NULL CONSTRAINT PartsToTube_Name FOREIGN KEY (TubeID) REFERENCES Tubes(TubeID)
+	--, FittingID int NOT NULL CONSTRAINT PartsToFitting_Name FOREIGN KEY (FittingID) REFERENCES Fittings(FittingID)
+	, ConverterID int NOT NULL CONSTRAINT PartsToConverter_Name FOREIGN KEY (ConverterID) REFERENCES Converters(ConverterID)
+	, SplitterID int NOT NULL CONSTRAINT PartsToSplitter_Name FOREIGN KEY (SplitterID) REFERENCES Splitters(SplitterID)
+	, ValveID int NOT NULL CONSTRAINT PartsToValve_Name FOREIGN KEY (ValveID) REFERENCES Valves(ValveID)
+	, PumpID  int NOT NULL CONSTRAINT PartsToPump_Name FOREIGN KEY (PumpID) REFERENCES Pumps(PumpID)
+	, CordID int NOT NULL CONSTRAINT PartsToCord_Name FOREIGN KEY (CordID) REFERENCES Cords(CordID)
+	, SwitchID int NOT NULL CONSTRAINT PartsToSwitch_Name FOREIGN KEY (SwitchID) REFERENCES Switches(SwitchID)
+	, SwitchBoxID int NOT NULL CONSTRAINT PartsToSwitchBox_Name FOREIGN KEY (SwitchBoxID) REFERENCES SwitchBoxes(SwitchBoxID)
+)
+
+CREATE TABLE GridsToParts
+(
+	GridToPartID int IDENTITY (1,1) PRIMARY KEY
+	, GridID int NOT NULL CONSTRAINT GridsToPartsToGrid_Name FOREIGN KEY (GridID) REFERENCES Grids(GridID)
+	, PartID int NOT NULL CONSTRAINT GridsToPartsToPart_Name FOREIGN KEY (PartID) REFERENCES Parts(PartID)
+	, XCoordinate int
+	, YCoordinate int
+)
+
+CREATE TABLE PartToParts
+(
+	PartToPartID int IDENTITY (1,1) PRIMARY KEY
+	, FromPartID int NOT NULL CONSTRAINT FromPart_Name FOREIGN KEY (FromPartID) REFERENCES Parts(PartID)
+	, ToPartID int NOT NULL CONSTRAINT ToParts_Name FOREIGN KEY (ToPartID) REFERENCES Parts(PartID)
+)
+
+-- Transporter Section
+/*
+CREATE TABLE Connections
+(
+	ConnectionID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar (20)
+	, Flow nvarchar (20)
+)
+*/
+
+/*
+CREATE TABLE Transporters
+(
+	TransporterID int IDENTITY (1,1) PRIMARY KEY
+)*/
+
+CREATE TABLE Contents
+(
+	ContentID int IDENTITY (1,1) PRIMARY KEY
+	, PartID int NOT NULL CONSTRAINT ConnectionsToPart_Name FOREIGN KEY (PartID) REFERENCES Parts(PartID)
+	, [Name] nvarchar (20)
+)
+
+CREATE TABLE Assessments
+(
+	AssessmentID int IDENTITY (1,1) PRIMARY KEY
+	, ContentID int NOT NULL CONSTRAINT AssessmentsToContent_Name FOREIGN KEY (ContentID) REFERENCES Contents(ContentID)
+	, [Name] nvarchar (20)
+	, [Value] float
+	, ThreshHold float
+)
+
+CREATE TABLE Sensors
+(
+	SensorID int IDENTITY (1,1) PRIMARY KEY
+	, PartID int NOT NULL CONSTRAINT SensorsToPart_Name FOREIGN KEY (PartID) REFERENCES Parts(PartID)
+	, [Name] nvarchar (20)
+)
+
+CREATE TABLE Readings
+(
+	ReadingID int IDENTITY (1,1) PRIMARY KEY
+	, [Name] nvarchar (20)
+)
+
+CREATE TABLE [Values]
+(
+	ValueID int IDENTITY (1,1) PRIMARY KEY
+	, PartID int NOT NULL CONSTRAINT ValuesToPart_Name FOREIGN KEY (PartID) REFERENCES Parts(PartID)
+	, ReadingID int NOT NULL CONSTRAINT ValuesToReading_Name FOREIGN KEY (ReadingID) REFERENCES Readings(ReadingID)
+	, [Name] nvarchar (20)
+	, LocationFromStart float
+	, [Value] float
+)
+
+CREATE TABLE SensorToValues
+(
+	SensorToValueID int IDENTITY (1,1) PRIMARY KEY
+	, SensorID int NOT NULL CONSTRAINT SensorToValuesToSensor_Name FOREIGN KEY (SensorID) REFERENCES Sensors(SensorID)
+	, ValueID int NOT NULL CONSTRAINT SensorToValuesToValue_Name FOREIGN KEY (ValueID) REFERENCES [Values](ValueID)
+	, Threshold float
+	, IsAboveCheck bit
+)
+
+-- Pictures
+CREATE TABLE Pictures
+(
+	PictureID int IDENTITY (1,1) PRIMARY KEY
+	, [FileName] nvarchar(30)
+	, PartName nvarchar(25)
+)
+
+-- Multi-Client
+CREATE TABLE Clients
+(
+	ClientID int IDENTITY (1,1) PRIMARY KEY
+	, ClientName nvarchar (35)
+	, ClientMutex bit
+)
+
+CREATE TABLE SystemToClients
+(
+	SystemToClientID int IDENTITY (1,1) PRIMARY KEY
+	, SystemID int NOT NULL CONSTRAINT SystemToSystemToClient_Name FOREIGN KEY (SystemID) REFERENCES Systems(SystemID)
+	, ClientID int NOT NULL CONSTRAINT ClientToSystemToClient_Name FOREIGN KEY (ClientID) REFERENCES Clients(ClientID)
+)
+GO 
+
+-- ***********************************************
+-- Kurt A Vedros
+-- Database Table Insert
+-- ***********************************************
+INSERT INTO Systems
+	VALUES ('Demo', 0)
+
+INSERT INTO Grids
+	VALUES (1, 'Demo')
+
+INSERT INTO Pictures 
+	VALUES ('CrossSectional.jpg', 'Splitter')
+			,('ElbowToLeft.jpg', 'Splitter')
+			,('ElbowToRight.jpg', 'Splitter')
+			,('Electricity.jpg', 'Source')
+			,('Gas.jpg', 'Source')
+			,('Pipe.jpg', 'Pipe')
+			,('PumpToLeft.jpg', 'Pump')
+			,('PumpToRight.jpg', 'Pump')
+			,('PumpToUp.jpg', 'Pump')
+			,('Sensor.jpg','Sensor')
+			,('Tank.jpg','Tank')
+			,('Tee.jpg','Splitter')
+			,('Valve.jpg','Valve')
+			,('Water.jpg','Source')
+
+INSERT INTO Materials
+	VALUES ('Stainless Steel')
+			, ('PEX')
+			, ('Copper')
+			, ('PVC')
+			, ('Galvanized')
+			, ('Brass')
+			, ('Cast Iron')
+
+INSERT INTO Grades
+	VALUES ('Grade A Carbon Steel', 30000, -1, 48000, -1)
+		, ('Grade B Carbon Steel API 5L PSL 2', 35000, 65000, 60000, 110000)
+		, ('API 5L X42 PSL2', 42000, 72000, 60000, 110000)
+		, ('API 5L X46 PSL2', 46000, 76000, 63000, 110000)
+		, ('API 5L X52 PSL2', 52000, 77000, 66000, 110000)
+		, ('API 5L X56 PSL2', 56000, 79000, 71000, 110000)
+		, ('API 5L X60 PSL2', 60000, 82000, 75000, 110000)
+		, ('API 5L X65 PSL2', 65000, 87000, 77000, 110000)
+		, ('API 5L X70 PSL2', 70000, 90000, 82000, 110000)
+
+-- Null pointer references for Parts.
+INSERT INTO Pipes
+	VALUES (1, 1, 'Null', 0, 0)
+
+INSERT INTO Tanks
+	VALUES (1, 1, 'Null', 0, 0)
+
+INSERT INTO Tubes
+	VALUES (1, 1, 'Null', 0, 0)
+
+INSERT INTO Pumps
+	VALUES ('null', 0, 0)
+
+INSERT INTO Splitters
+	VALUES ('null', 0)
+
+INSERT INTO Converters
+	VALUES ('null', 0, 0)
+
+INSERT INTO Sources
+	VALUES ('null')
+
+INSERT INTO Exits
+	VALUES ('null')
+
+INSERT INTO Cords
+	VALUES ('null', 0, 0)
+
+INSERT INTO SwitchBoxes
+	VALUES ('null')
+
+INSERT INTO FlowRegulators
+	VALUES ('null', 0)
+	, ('temp', 1)
+	, ('max', 0)
+	, ('bob', 0)
+
+INSERT INTO Valves
+	VALUES (0, 'null')
+
+INSERT INTO Switches
+	VALUES (0, 0, 'null')
+
+-- ***********************************************
+-- Kurt A Vedros
+-- Database Procedures
+-- ***********************************************
+-- DROP ALL Procedures
+--		System
+-----------------------------------------------
+--		Assessments
+DROP PROCEDURE sprocGetAssessments
+DROP PROCEDURE sprocGetAssessment
+DROP PROCEDURE sproc_AssessmentAdd
+DROP PROCEDURE sproc_AssessmentUpdate
+DROP PROCEDURE sproc_AssessmentRemove
+
+--		Connections
+/*
+DROP PROCEDURE sprocGetConnections
+DROP PROCEDURE sprocGetConnection
+DROP PROCEDURE sproc_ConnectionAdd
+DROP PROCEDURE sproc_ConnectionUpdate
+DROP PROCEDURE sproc_ConnectionRemove
+*/
+
+--		ConnectionToParts
+/*
+DROP PROCEDURE sprocGetConnectionToParts
+DROP PROCEDURE sprocGetConnectionToPart
+DROP PROCEDURE sproc_ConnectionToPartAdd
+DROP PROCEDURE sproc_ConnectionToPartUpdate
+DROP PROCEDURE sproc_ConnectionToPartRemove
+*/
+
+--		Contents
+DROP PROCEDURE sprocGetContents
+DROP PROCEDURE sprocGetContent
+DROP PROCEDURE sproc_ContentAdd
+DROP PROCEDURE sproc_ContentUpdate
+DROP PROCEDURE sproc_ContentRemove
+
+--		Converters
+DROP PROCEDURE sprocGetConverters
+DROP PROCEDURE sprocGetConverter
+DROP PROCEDURE sproc_ConverterAdd
+DROP PROCEDURE sproc_ConverterUpdate
+DROP PROCEDURE sproc_ConverterRemove
+
+--		Cords
+DROP PROCEDURE sprocGetCords
+DROP PROCEDURE sprocGetCord
+DROP PROCEDURE sproc_CordAdd
+DROP PROCEDURE sproc_CordUpdate
+DROP PROCEDURE sproc_CordRemove
+
+--		Exits
+DROP PROCEDURE sprocGetExits
+DROP PROCEDURE sprocGetExit
+DROP PROCEDURE sproc_ExitAdd
+DROP PROCEDURE sproc_ExitUpdate
+DROP PROCEDURE sproc_ExitRemove
+
+--		Fittings
+/*
+DROP PROCEDURE sprocGetFittings
+DROP PROCEDURE sprocGetFitting
+DROP PROCEDURE sproc_FittingAdd
+DROP PROCEDURE sproc_FittingUpdate
+DROP PROCEDURE sproc_FittingRemove
+*/
+
+--		FlowRegulators
+DROP PROCEDURE sprocGetFlowRegulators
+DROP PROCEDURE sprocGetFlowRegulator
+DROP PROCEDURE sproc_FlowRegulatorAdd
+DROP PROCEDURE sproc_FlowRegulatorUpdate
+DROP PROCEDURE sproc_FlowRegulatorRemove
+
+--		Grades
+DROP PROCEDURE sprocGetGrades
+DROP PROCEDURE sprocGetGrade
+DROP PROCEDURE sproc_GradeAdd
+DROP PROCEDURE sproc_GradeUpdate
+DROP PROCEDURE sproc_GradeRemove
+
+--		Grids
+DROP PROCEDURE sprocGetGrids
+DROP PROCEDURE sprocGetGrid
+DROP PROCEDURE sproc_GridAdd
+DROP PROCEDURE sproc_GridUpdate
+DROP PROCEDURE sproc_GridRemove
+
+--		GridsToParts
+DROP PROCEDURE sprocGetGridToParts
+DROP PROCEDURE sprocGetGridToPartsByGridID
+DROP PROCEDURE sprocGetGridToPart
+DROP PROCEDURE sproc_GridToPartAdd
+DROP PROCEDURE sproc_GridToPartUpdate
+DROP PROCEDURE sproc_GridToPartRemove
+
+--		Materials
+DROP PROCEDURE sprocGetMaterials
+DROP PROCEDURE sprocGetMaterial
+DROP PROCEDURE sproc_MaterialAdd
+DROP PROCEDURE sproc_MaterialUpdate
+DROP PROCEDURE sproc_MaterialRemove
+
+--		Parts
+DROP PROCEDURE sprocGetParts
+DROP PROCEDURE sprocGetPart
+DROP PROCEDURE sproc_PartAdd
+DROP PROCEDURE sproc_PartUpdate
+DROP PROCEDURE sproc_PartRemove
+
+--		PartToParts
+DROP PROCEDURE sprocGetPartToParts
+DROP PROCEDURE sprocGetPartToPart
+DROP PROCEDURE sproc_PartToPartAdd
+DROP PROCEDURE sproc_PartToPartUpdate
+DROP PROCEDURE sproc_PartToPartRemove
+
+--		Pipes
+DROP PROCEDURE sprocGetPipes
+DROP PROCEDURE sprocGetPipe
+DROP PROCEDURE sproc_PipeAdd
+DROP PROCEDURE sproc_PipeUpdate
+DROP PROCEDURE sproc_PipeRemove
+
+--		Plugs
+/*
+DROP PROCEDURE sprocGetPlugs
+DROP PROCEDURE sprocGetPlug
+DROP PROCEDURE sproc_PlugAdd
+DROP PROCEDURE sproc_PlugUpdate
+DROP PROCEDURE sproc_PlugRemove
+*/
+
+--		Pumps
+DROP PROCEDURE sprocGetPumps
+DROP PROCEDURE sprocGetPump
+DROP PROCEDURE sproc_PumpAdd
+DROP PROCEDURE sproc_PumpUpdate
+DROP PROCEDURE sproc_PumpRemove
+
+--		Readings
+DROP PROCEDURE sprocGetReadings
+DROP PROCEDURE sprocGetReading
+DROP PROCEDURE sproc_ReadingAdd
+DROP PROCEDURE sproc_ReadingUpdate
+DROP PROCEDURE sproc_ReadingRemove
+
+--		Sensors
+DROP PROCEDURE sprocGetSensors
+DROP PROCEDURE sprocGetSensor
+DROP PROCEDURE sproc_SensorAdd
+DROP PROCEDURE sproc_SensorUpdate
+DROP PROCEDURE sproc_SensorRemove
+
+--		SensorToValues
+DROP PROCEDURE sprocGetSensorToValues
+DROP PROCEDURE sprocGetSensorToValue
+DROP PROCEDURE sproc_SensorToValueAdd
+DROP PROCEDURE sproc_SensorToValueUpdate
+DROP PROCEDURE sproc_SensorToValueRemove
+
+--		Sources
+DROP PROCEDURE sprocGetSources
+DROP PROCEDURE sprocGetSource
+DROP PROCEDURE sproc_SourceAdd
+DROP PROCEDURE sproc_SourceUpdate
+DROP PROCEDURE sproc_SourceRemove
+
+--		Splitters
+DROP PROCEDURE sprocGetSplitters
+DROP PROCEDURE sprocGetSplitter
+DROP PROCEDURE sproc_SplitterAdd
+DROP PROCEDURE sproc_SplitterUpdate
+DROP PROCEDURE sproc_SplitterRemove
+
+--		SwitchBoxes
+DROP PROCEDURE sprocGetSwitchBoxes
+DROP PROCEDURE sprocGetSwitchBox
+DROP PROCEDURE sproc_SwitchBoxAdd
+DROP PROCEDURE sproc_SwitchBoxUpdate
+DROP PROCEDURE sproc_SwitchBoxRemove
+
+--		Switches
+DROP PROCEDURE sprocGetSwitches
+DROP PROCEDURE sprocGetSwitch
+DROP PROCEDURE sproc_SwitchAdd
+DROP PROCEDURE sproc_SwitchUpdate
+DROP PROCEDURE sproc_SwitchRemove
+
+--		Systems
+DROP PROCEDURE sprocGetSystems
+DROP PROCEDURE sprocGetSystem
+DROP PROCEDURE sproc_SystemAdd
+DROP PROCEDURE sproc_SystemUpdate
+DROP PROCEDURE sproc_SystemRemove
+DROP PROCEDURE sproc_SystemMutexUpdate
+DROP PROCEDURE sprocGetSystemMutex
+
+--		SystemToClient
+DROP PROCEDURE sprocGetSystemToClients
+DROP PROCEDURE sprocGetSystemToClient
+DROP PROCEDURE sproc_SystemToClientAdd
+DROP PROCEDURE sproc_SystemToClientUpdate
+DROP PROCEDURE sproc_SystemToClientRemove
+
+--		Tanks
+DROP PROCEDURE sprocGetTanks
+DROP PROCEDURE sprocGetTank
+DROP PROCEDURE sproc_TankAdd
+DROP PROCEDURE sproc_TankUpdate
+DROP PROCEDURE sproc_TankRemove
+
+--		Transporters
+/*
+DROP PROCEDURE sprocGetTransporters
+DROP PROCEDURE sprocGetTransporter
+DROP PROCEDURE sproc_TransporterAdd
+DROP PROCEDURE sproc_TransporterUpdate
+DROP PROCEDURE sproc_TransporterRemove
+*/
+
+--		TransporterToParts
+/*
+DROP PROCEDURE sprocGetTransporterToParts
+DROP PROCEDURE sprocGetTransporterToPart
+DROP PROCEDURE sproc_TransporterToPartAdd
+DROP PROCEDURE sproc_TransporterToPartUpdate
+DROP PROCEDURE sproc_TransporterToPartRemove
+*/
+
+--		Tubes
+DROP PROCEDURE sprocGetTubes
+DROP PROCEDURE sprocGetTube
+DROP PROCEDURE sproc_TubeAdd
+DROP PROCEDURE sproc_TubeUpdate
+DROP PROCEDURE sproc_TubeRemove
+
+--		Values
+DROP PROCEDURE sprocGetValues
+DROP PROCEDURE sprocGetValue
+DROP PROCEDURE sproc_ValueAdd
+DROP PROCEDURE sproc_ValueUpdate
+DROP PROCEDURE sproc_ValueRemove
+
+--		Valves
+DROP PROCEDURE sprocGetValves
+DROP PROCEDURE sprocGetValve
+DROP PROCEDURE sproc_ValveAdd
+DROP PROCEDURE sproc_ValveUpdate
+DROP PROCEDURE sproc_ValveRemove
+
+
+--		Pictures
+--------------------------------------
+DROP PROCEDURE sprocGetPictures
+DROP PROCEDURE sprocGetPicture
+DROP PROCEDURE sproc_PictureAdd
+DROP PROCEDURE sproc_PictureUpdate
+DROP PROCEDURE sproc_PictureRemove
+
+--		Client
+---------------------------------------
+DROP PROCEDURE sprocGetClients
+DROP PROCEDURE sprocGetClient
+DROP PROCEDURE sproc_ClientAdd
+DROP PROCEDURE sproc_ClientUpdate
+DROP PROCEDURE sproc_ClientRemove
+DROP PROCEDURE sprocGetClientByName
+DROP PROCEDURE sprocGetClientMutex
+DROP PROCEDURE sproc_ClientMutexUpdate
+DROP PROCEDURE sproc_GetAllClientsBySystem
+
+--		Additional Procedures
+---------------------------------------
+DROP PROCEDURE sprocGetAllPartsIs
+DROP PROCEDURE sprocGetAssessmentsByContentID
+DROP PROCEDURE sprocGetValuesByPartID
+DROP PROCEDURE sprocGetConnentsOfPart
+DROP PROCEDURE sprocGetValueOfPartWithReading
+DROP PROCEDURE sprocGetValueOfSensorWithReading
+GO
+
+-- CREATE Procedures
+--		Basic Lookup all, Look up single, Add, Update and Delete
+--		Assessments 
+------------------------------------------------------
+CREATE PROCEDURE sprocGetAssessments
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Assessments
+END
+GO
+
+CREATE PROCEDURE sprocGetAssessment
+@AssessmentID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Assessments
+		WHERE AssessmentID = @AssessmentID
+END
+GO
+
+CREATE PROCEDURE sproc_AssessmentAdd
+@AssessmentID int OUT
+, @ContentID int
+, @Name nvarchar(20)
+, @Value float
+, @ThreshHold float
+AS
+BEGIN
+	INSERT INTO Assessments(ContentID, [Name], [Value], ThreshHold)
+			VALUES(@ContentID, @Name, @Value, @ThreshHold)
+	SET @AssessmentID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_AssessmentUpdate
+@AssessmentID int
+, @ContentID int
+, @Name nvarchar(20)
+, @Value float
+, @ThreshHold float
+AS
+BEGIN
+	UPDATE Assessments
+		SET ContentID = @ContentID 
+			, [Name] = @Name
+			, [Value] = @Value
+			, ThreshHold = @ThreshHold
+		WHERE AssessmentID = @AssessmentID
+END
+GO
+
+CREATE PROCEDURE sproc_AssessmentRemove
+@AssessmentID int
+AS
+BEGIN
+	DELETE FROM Assessments
+		WHERE AssessmentID = @AssessmentID
+END
+GO
+
+--		Connections
+------------------------------------------------------
+/*
+CREATE PROCEDURE sprocGetConnections
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Connections
+END
+GO
+
+CREATE PROCEDURE sprocGetConnection
+@ConnectionID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Connections
+		WHERE ConnectionID = @ConnectionID
+END
+GO
+
+CREATE PROCEDURE sproc_ConnectionAdd
+@ConnectionID Int OUT
+, @Name nvarchar(20)
+, @Flow float
+AS
+BEGIN
+	INSERT INTO Connections(Name, Flow)
+		VALUES(@Name, @Flow)
+	SET @ConnectionID = @@IDENTITY
+END
+GO
+	
+
+
+CREATE PROCEDURE sproc_ConnectionUpdate
+@ConnectionID Int
+, @Name nvarchar(20)
+, @Flow float
+AS
+BEGIN
+	UPDATE Connections
+		SET [Name] = @Name
+			, Flow = @Flow
+		WHERE ConnectionID = @ConnectionID
+END
+GO
+
+CREATE PROCEDURE sproc_ConnectionRemove
+@ConnectionID int
+AS
+BEGIN
+	DELETE FROM Connections
+		WHERE ConnectionID = @ConnectionID
+END
+GO
+*/
+
+--		PartToParts
+------------------------------------------------------
+CREATE PROCEDURE sprocGetPartToParts
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM PartToParts
+END
+GO
+
+CREATE PROCEDURE sprocGetPartToPart
+@PartToPartID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM PartToParts
+		WHERE PartToPartID = @PartToPartID
+END
+GO
+
+CREATE PROCEDURE sproc_PartToPartAdd
+@PartToPartID int OUT
+, @FromPartID int
+, @ToPartID int
+AS
+BEGIN
+	INSERT INTO PartToParts(FromPartID, ToPartID)
+		VALUES(@FromPartID, @ToPartID)
+	SET @PartToPartID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PartToPartUpdate
+@PartToPartID int
+, @FromPartID int
+, @ToPartID int
+AS
+BEGIN
+	UPDATE PartToParts
+		SET FromPartID = @FromPartID
+			, ToPartID = @ToPartID
+		WHERE PartToPartID = @PartToPartID
+END
+GO
+
+CREATE PROCEDURE sproc_PartToPartRemove
+@PartToPartID int
+AS
+BEGIN
+	DELETE FROM PartToParts
+		WHERE PartToPartID = @PartToPartID
+END
+GO
+
+--		Contents
+------------------------------------------------------
+CREATE PROCEDURE sprocGetContents
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Contents
+END
+GO
+
+CREATE PROCEDURE sprocGetContent
+@ContentID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Contents
+		WHERE ContentID = @ContentID
+END
+GO
+
+CREATE PROCEDURE sproc_ContentAdd
+@ContentID int OUT
+, @PartID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Contents(PartID, Name)
+		VALUES(@PartID, @Name)
+	SET @ContentID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ContentUpdate
+@ContentID int
+, @PartID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Contents
+		SET PartID =@PartID
+			, Name = @Name
+		WHERE ContentID = @ContentID
+END
+GO
+
+CREATE PROCEDURE sproc_ContentRemove
+@ContentID int
+AS
+BEGIN
+	DELETE FROM Contents
+		WHERE ContentID = @ContentID
+END
+GO
+
+--		Converters
+---------------------------------------------------
+CREATE PROCEDURE sprocGetConverters
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Converters
+END
+GO
+
+CREATE PROCEDURE sprocGetConverter
+@ConverterID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Converters
+		WHERE ConverterID = @ConverterID
+END
+GO
+
+CREATE PROCEDURE sproc_ConverterAdd
+@ConverterID int OUT
+, @Name nvarchar(20)
+, @FromDiameter float
+, @ToDiameter float
+AS
+BEGIN
+	INSERT INTO Converters(Name, FromDiameter, ToDiameter)
+		VALUES (@Name, @FromDiameter, @ToDiameter)
+	SET @ConverterID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ConverterUpdate
+@ConverterID int
+, @Name nvarchar(20)
+, @FromDiameter float
+, @ToDiameter float
+AS
+BEGIN
+	UPDATE Converters
+		SET Name = @Name
+			, FromDiameter = @FromDiameter
+			, ToDiameter = @ToDiameter
+		WHERE ConverterID = @ConverterID
+END
+GO
+
+CREATE PROCEDURE sproc_ConverterRemove
+@ConverterID int
+AS
+BEGIN
+	DELETE FROM Converters
+		WHERE ConverterID = @ConverterID
+END
+GO
+
+--		Cords
+---------------------------------------------------
+CREATE PROCEDURE sprocGetCords
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Cords
+END
+GO
+
+CREATE PROCEDURE sprocGetCord
+@CordID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Cords
+		WHERE CordID = @CordID
+END
+GO
+
+CREATE PROCEDURE sproc_CordAdd
+@CordID int OUT
+, @Name nvarchar(20)
+, @Length float
+, @VoltageDropRate float
+AS
+BEGIN
+	INSERT INTO Cords(Name, Length, VoltageDropRate)
+		VALUES(@Name, @Length, @VoltageDropRate)
+	SET @CordID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_CordUpdate
+@CordID int
+, @Name nvarchar(20)
+, @Length float
+, @VoltageDropRate float
+AS
+BEGIN
+	UPDATE Cords
+		SET Name = @Name
+			, [Length] = @Length
+			, VoltageDropRate = @VoltageDropRate
+		WHERE CordID = @CordID
+END
+GO
+
+CREATE PROCEDURE sproc_CordRemove
+@CordID int
+AS
+BEGIN
+	DELETE FROM Cords
+		WHERE CordID = @CordID
+END
+GO
+
+--		Exits
+----------------------------------------------------
+CREATE PROCEDURE sprocGetExits
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Exits
+END
+GO
+
+CREATE PROCEDURE sprocGetExit
+@ExitID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Exits 
+		WHERE ExitID = @ExitID
+END
+GO 
+
+CREATE PROCEDURE sproc_ExitAdd
+@ExitID int OUT
+, @Name nvarchar (20)
+AS
+BEGIN
+	INSERT INTO Exits(Name)
+		VALUES(@Name)
+	SET @ExitID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ExitUpdate
+@ExitID int 
+, @Name nvarchar (20)
+AS
+BEGIN
+	UPDATE Exits
+		SET Name = @Name
+		WHERE ExitID = @ExitID
+END
+GO
+
+CREATE PROCEDURE sproc_ExitRemove
+@ExitID int
+AS
+BEGIN
+	DELETE FROM Exits
+		WHERE ExitID = @ExitID
+END
+GO
+
+--		Fittings
+/*
+CREATE PROCEDURE sprocGetFittings
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Fittings
+END
+GO
+
+CREATE PROCEDURE sprocGetFitting
+@FittingID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Fittings 
+		WHERE FittingID = @FittingID
+END
+GO
+
+CREATE PROCEDURE sproc_FittingAdd
+@FittingID int OUT
+, @SplitterID int
+, @PlugID int
+, @ConverterID int
+, @TransporterID int
+AS
+BEGIN
+	INSERT INTO Fittings(SplitterID, PlugID, ConverterID, TransporterID)
+		VALUES(@SplitterID, @PlugID, @ConverterID, @TransporterID)
+	SET @FittingID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_FittingUpdate
+@FittingID int
+, @SplitterID int
+, @PlugID int
+, @ConverterID int
+, @TransporterID int
+AS
+BEGIN
+	UPDATE Fittings
+		SET SplitterID = @SplitterID
+			, PlugID = @PlugID
+			, ConverterID = @ConverterID
+			, TransporterID = @TransporterID
+		WHERE FittingID = @FittingID
+END
+GO
+
+CREATE PROCEDURE sproc_FittingRemove
+@FittingID int
+AS
+BEGIN
+	DELETE FROM Fittings
+		WHERE FittingID = @FittingID
+END
+GO
+*/
+
+--		FlowRegulators
+----------------------------------------------------------
+CREATE PROCEDURE sprocGetFlowRegulators
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM FlowRegulators
+END
+GO
+
+CREATE PROCEDURE sprocGetFlowRegulator
+@FlowRegulator int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM FlowRegulators
+		WHERE FlowRegulatorID = @FlowRegulator
+END
+GO
+
+CREATE PROCEDURE sproc_FlowRegulatorAdd
+@FlowRegulatorID int OUT
+, @Name nvarchar(20)
+, @IsOpen bit
+AS
+BEGIN
+	INSERT INTO FlowRegulators(Name, IsOpen)
+		VALUES(@Name, @IsOpen)
+	SET @FlowRegulatorID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_FlowRegulatorUpdate
+@FlowRegulatorID int
+, @Name nvarchar(20)
+, @IsOpen bit
+AS
+BEGIN
+	UPDATE FlowRegulators
+		SET Name = @Name
+			, IsOpen = @IsOpen
+		WHERE FlowRegulatorID = @FlowRegulatorID
+END
+GO
+
+CREATE PROCEDURE sproc_FlowRegulatorRemove
+@FlowRegulatorID int
+AS
+BEGIN
+	DELETE FROM FlowRegulators
+		WHERE FlowRegulatorID = @FlowRegulatorID
+END
+GO
+
+
+--		Grades
+----------------------------------------------------
+CREATE PROCEDURE sprocGetGrades
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Grades
+END
+GO
+
+CREATE PROCEDURE sprocGetGrade
+@GradeID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Grades
+		WHERE GradeID = @GradeID
+END
+GO
+
+CREATE PROCEDURE sproc_GradeAdd
+@GradeID int OUT
+, @Name nvarchar(35)
+, @MinYieldStr float
+, @MaxYieldStr float
+, @MinTensileStr float
+, @MaxTensileStr float
+AS
+BEGIN
+	INSERT INTO Grades(Name, MinYieldStr, MaxYieldStr, MinTensileStr, MaxTensileStr)
+		VALUES(@Name, @MinYieldStr, @MaxYieldStr, @MinTensileStr, @MaxTensileStr)
+	SET @GradeID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_GradeUpdate
+@GradeID int 
+, @Name nvarchar(35)
+, @MinYieldStr float
+, @MaxYieldStr float
+, @MinTensileStr float
+, @MaxTensileStr float
+AS
+BEGIN
+	UPDATE Grades
+		SET Name = @Name
+			, MinTensileStr = @MinTensileStr
+			, MaxTensileStr = @MaxTensileStr
+			, MinYieldStr = @MinTensileStr
+			, MaxYieldStr = @MaxYieldStr
+		WHERE GradeID = @GradeID
+END
+GO
+
+CREATE PROCEDURE sproc_GradeRemove
+@GradeID int
+AS
+BEGIN
+	DELETE FROM Grades
+		WHERE GradeID = @GradeID
+END
+GO
+
+--		Grids
+---------------------------------------------------
+CREATE PROCEDURE sprocGetGrids
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Grids
+END
+GO
+
+CREATE PROCEDURE sprocGetGrid
+@GridID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Grids
+		WHERE GridID = @GridID
+END
+GO
+
+CREATE PROCEDURE sproc_GridAdd
+@GridID int OUT
+, @SystemID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Grids(SystemID, Name)
+		VALUES(@SystemID, @Name)
+	SET @GridID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_GridUpdate
+@GridID int 
+, @SystemID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Grids
+		SET SystemID = @SystemID
+			, Name = @Name
+		WHERE GridID = @GridID
+END
+GO
+
+CREATE PROCEDURE sproc_GridRemove
+@GridID int
+AS
+BEGIN
+	DELETE FROM Grids
+		WHERE GridID = @GridID
+END
+GO
+
+--		GridsToParts
+--------------------------------------
+CREATE PROCEDURE sprocGetGridToParts
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM GridsToParts
+END
+GO
+
+CREATE PROCEDURE sprocGetGridToPartsByGridID
+@GridID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM GridsToParts
+		WHERE GridID = @GridID
+END
+GO
+
+CREATE PROCEDURE sprocGetGridToPart
+@GridToPartID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM GridsToParts
+		WHERE GridToPartID = @GridToPartID
+END
+GO
+
+CREATE PROCEDURE sproc_GridToPartAdd
+@GridToPartID int OUT
+, @GridID int
+, @PartID int
+, @XCoordinate int
+, @YCoordinate int
+AS
+BEGIN
+	INSERT INTO GridsToParts(GridID, PartID, XCoordinate, YCoordinate)
+		VALUES(@GridID, @PartID, @XCoordinate, @YCoordinate)
+	SET @GridToPartID = @@IDENTITY
+END
+
+GO
+CREATE PROCEDURE sproc_GridToPartUpdate
+@GridToPartID int
+, @GridID int
+, @PartID int
+, @XCoordinate int
+, @YCoordinate int
+AS
+BEGIN
+	UPDATE GridsToParts
+		SET GridID = @GridID
+			, PartID = @PartID
+			, XCoordinate = @XCoordinate
+			, YCoordinate = @YCoordinate
+		WHERE GridToPartID = @GridToPartID
+END
+GO
+
+CREATE PROCEDURE sproc_GridToPartRemove
+@GridToPartID int
+AS
+BEGIN
+	DELETE FROM GridsToParts
+		WHERE GridToPartID = @GridToPartID
+END
+GO
+
+--		Materials
+-------------------------------------------------
+CREATE PROCEDURE sprocGetMaterials
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Materials
+END
+GO
+
+CREATE PROCEDURE sprocGetMaterial
+@MaterialID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Materials
+		WHERE MaterialID = @MaterialID
+END
+GO
+
+CREATE PROCEDURE sproc_MaterialAdd
+@MaterialID int OUT
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Materials(Name)
+		VALUES(@Name)
+	SET @MaterialID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_MaterialUpdate
+@MaterialID int 
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Materials
+		SET Name = @Name
+		WHERE MaterialID = @MaterialID
+END
+GO
+
+CREATE PROCEDURE sproc_MaterialRemove
+@MaterialID int
+AS
+BEGIN
+	DELETE FROM Materials
+		WHERE MaterialID = @MaterialID
+END
+GO
+
+--		Parts
+---------------------------------------------------
+CREATE PROCEDURE sprocGetParts
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Parts
+END
+GO
+
+CREATE PROCEDURE sprocGetPart
+@PartID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Parts
+		WHERE PartID = @PartID
+END
+GO
+
+CREATE PROCEDURE sproc_PartAdd
+@PartID int OUT
+, @SourceID int
+, @PipeID int
+, @TankID int
+, @TubeID int
+, @ConverterID int
+, @SplitterID int
+, @ValveID int
+, @PumpID int
+, @ExitID int
+, @CordID int
+, @SwitchBoxID int
+, @SwitchID int
+AS
+BEGIN
+	INSERT INTO Parts(SourceID, PipeID, TankID, TubeID, ConverterID, SplitterID
+				, ValveID, PumpID, ExitID, CordID, SwitchBoxID, SwitchID)
+		VALUES(@SourceID, @PipeID, @TankID, @TubeID, @ConverterID, @SplitterID
+				, @ValveID, @PumpID, @ExitID, @CordID, @SwitchBoxID, @SwitchID)
+	SET @PartID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PartUpdate
+@PartID int OUT
+, @SourceID int
+, @PipeID int
+, @TankID int
+, @TubeID int
+, @ConverterID int
+, @SplitterID int
+, @ValveID int
+, @PumpID int
+, @ExitID int
+, @CordID int
+, @SwitchBoxID int
+, @SwitchID int
+AS
+BEGIN
+	UPDATE Parts
+		SET SourceID = @SourceID
+			, PipeID = @PipeID
+			, TankID = @TankID
+			, TubeID = @TubeID
+			, ConverterID = @ConverterID
+			, SplitterID = @SplitterID
+			, ValveID = @ValveID
+			, PumpID = @PumpID
+			, ExitID = @ExitID
+			, CordID = @CordID
+			, SwitchBoxID = @SwitchBoxID
+			, SwitchID = @SwitchID
+		WHERE PartID = @PartID
+END
+GO
+
+CREATE PROCEDURE sproc_PartRemove
+@PartID int
+AS
+BEGIN
+	DELETE FROM Parts
+		WHERE PartID = @PartID
+END
+GO
+
+--		Pipes
+------------------------------------------------
+CREATE PROCEDURE sprocGetPipes
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pipes
+END
+GO
+
+CREATE PROCEDURE sprocGetPipe
+@PipeID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pipes
+		WHERE PipeID = @PipeID
+END
+GO
+
+CREATE PROCEDURE sproc_PipeAdd
+@PipeID int OUT
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter float
+, @Distance float
+AS
+BEGIN
+	INSERT INTO Pipes(GradeID, MaterialID, Name
+		, Diameter, Distance)
+		VALUES(@GradeID, @MaterialID, @Name
+		, @Diameter, @Distance)
+	SET @PipeID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PipeUpdate
+@PipeID int
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter float
+, @Distance float
+AS
+BEGIN
+	UPDATE Pipes
+		SET GradeID = @GradeID
+			, MaterialID = @MaterialID
+			, Name = @Name
+			, Diameter = @Diameter
+			, Distance = @Distance
+		WHERE PipeID = @PipeID
+END
+GO
+
+CREATE PROCEDURE sproc_PipeRemove
+@PipeID int
+AS
+BEGIN
+	DELETE FROM Pipes
+		WHERE PipeID = @PipeID
+END
+GO
+
+--		Plugs
+--------------------------------------------------
+/*
+CREATE PROCEDURE sprocGetPlugs
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Plugs
+END
+GO
+
+CREATE PROCEDURE sprocGetPlug
+@PlugID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Plugs
+		WHERE PlugID = @PlugID
+END
+GO
+
+CREATE PROCEDURE sproc_PlugAdd
+@PlugID int OUT
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Plugs(Name)
+		VALUES(@Name)
+	SET @PlugID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PlugUpdate
+@PlugID int 
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Plugs
+		SET Name = @Name
+		WHERE PlugID = @PlugID
+END
+GO
+
+CREATE PROCEDURE sproc_PlugRemove
+@PlugID int
+AS
+BEGIN
+	DELETE FROM Plugs
+		WHERE PlugID = @PlugID
+END
+GO
+*/
+
+--		Pumps
+------------------------------------------------------
+CREATE PROCEDURE sprocGetPumps
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pumps
+END
+GO
+
+CREATE PROCEDURE sprocGetPump
+@PumpID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pumps
+		WHERE PumpID = @PumpID
+END
+GO
+
+CREATE PROCEDURE sproc_PumpAdd
+@PumpID int OUT
+, @Name nvarchar(20)
+, @VerticalSuctionLift float
+, @MaximumHeadLift float
+AS
+BEGIN
+	INSERT INTO Pumps(Name, VerticalSuctionLift, MaximumHeadLift)
+		VALUES(@Name, @VerticalSuctionLift, @MaximumHeadLift)
+	SET @PumpID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PumpUpdate
+@PumpID int 
+, @Name nvarchar(20)
+, @VerticalSuctionLift float
+, @MaximumHeadLift float
+AS
+BEGIN
+	UPDATE Pumps
+		SET Name = @Name
+			, VerticalSuctionLift = @VerticalSuctionLift
+			, MaximumHeadLift = @MaximumHeadLift
+		WHERE PumpID = @PumpID
+END
+GO
+
+CREATE PROCEDURE sproc_PumpRemove
+@PumpID int
+AS
+BEGIN
+	DELETE FROM Pumps
+		WHERE PumpID = @PumpID
+END
+GO
+
+--		Readings
+------------------------------------------------
+CREATE PROCEDURE sprocGetReadings
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Readings
+END
+GO
+
+CREATE PROCEDURE sprocGetReading
+@ReadingID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Readings
+		WHERE ReadingID = @ReadingID
+END
+GO
+
+CREATE PROCEDURE sproc_ReadingAdd
+@ReadingID int OUT
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Readings(Name)
+		VALUES(@Name)
+	SET @ReadingID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ReadingUpdate
+@ReadingID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Readings
+		SET Name = @Name
+		WHERE ReadingID = @ReadingID
+END
+GO
+
+CREATE PROCEDURE sproc_ReadingRemove
+@ReadingID int
+AS
+BEGIN
+	DELETE FROM Readings
+		WHERE ReadingID = @ReadingID
+END
+GO
+
+--		Sensors
+------------------------------------------------
+CREATE PROCEDURE sprocGetSensors
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Sensors
+END
+GO
+
+CREATE PROCEDURE sprocGetSensor
+@SensorID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Sensors
+		WHERE SensorID = @SensorID
+END
+GO
+
+CREATE PROCEDURE sproc_SensorAdd
+@SensorID int OUT
+, @PartID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Sensors(PartID, Name)
+		VALUES(@PartID, @Name)
+	SET @SensorID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SensorUpdate
+@SensorID int
+, @PartID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Sensors
+		SET PartID = @PartID
+			, Name = @Name
+		WHERE SensorID = @SensorID
+END
+GO
+
+CREATE PROCEDURE sproc_SensorRemove
+@SensorID int
+AS
+BEGIN
+	DELETE FROM Sensors
+		WHERE SensorID = @SensorID
+END
+GO
+
+-- SensorToValues
+------------------------------------------------
+CREATE PROCEDURE sprocGetSensorToValues
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SensorToValues
+END
+GO
+
+CREATE PROCEDURE sprocGetSensorToValue
+@SensorToValueID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SensorToValues
+		WHERE SensorToValueID = @SensorToValueID
+END
+GO
+
+CREATE PROCEDURE sproc_SensorToValueAdd
+@SensorToValueID int OUT
+, @SensorID int
+, @ValueID int
+, @Threshold float
+, @IsAboveCheck bit
+AS
+BEGIN
+	INSERT INTO SensorToValues(SensorID, ValueID, Threshold, IsAboveCheck)
+		VALUES(@SensorID, @ValueID, @Threshold, @IsAboveCheck)
+	SET @SensorID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SensorToValueUpdate
+@SensorToValueID int
+, @SensorID int
+, @ValueID int
+, @Threshold float
+, @IsAboveCheck bit
+AS
+BEGIN
+	UPDATE SensorToValues
+		SET SensorID = @SensorID
+			, ValueID = @ValueID
+			, Threshold = @Threshold
+			, IsAboveCheck = @IsAboveCheck
+		WHERE SensorToValueID = @SensorToValueID
+END
+GO
+
+CREATE PROCEDURE sproc_SensorToValueRemove
+@SensorToValueID int
+AS
+BEGIN
+	DELETE FROM SensorToValues
+		WHERE SensorToValueID = @SensorToValueID
+END
+GO
+
+--		Sources
+----------------------------------------------------------
+CREATE PROCEDURE sprocGetSources
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Sources
+END
+GO
+
+CREATE PROCEDURE sprocGetSource
+@SourceID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Sources 
+		WHERE SourceID = @SourceID
+END
+GO
+
+CREATE PROCEDURE sproc_SourceAdd
+@SourceID int OUT
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Sources(Name)
+		VALUES(@Name)
+	SET @SourceID = @@IDENTITY
+END
+
+GO
+CREATE PROCEDURE sproc_SourceUpdate
+@SourceID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Sources
+		SET Name = @Name
+		WHERE SourceID = @SourceID
+END
+GO
+
+CREATE PROCEDURE sproc_SourceRemove
+@SourceID int
+AS
+BEGIN
+	DELETE FROM Sources
+		WHERE SourceID = @SourceID
+END
+GO
+
+--		Splitters
+--------------------------------------------------------
+CREATE PROCEDURE sprocGetSplitters
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Splitters
+END
+GO
+
+CREATE PROCEDURE sprocGetSplitter
+@SplitterID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Splitters
+		WHERE SplitterID = @SplitterID
+END
+GO
+
+CREATE PROCEDURE sproc_SplitterAdd
+@SplitterID int OUT
+, @Name nvarchar(20)
+, @NumberOfSplits int
+AS
+BEGIN
+	INSERT INTO Splitters(Name, NumberOfSplits)
+		VALUES(@Name, @NumberOfSplits)
+	SET @SplitterID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SplitterUpdate
+@SplitterID int
+, @Name nvarchar(20)
+, @NumberOfSplits int
+AS
+BEGIN
+	UPDATE Splitters
+		SET Name = @Name
+			, NumberOfSplits = @NumberOFSplits
+		WHERE SplitterID = @SplitterID
+END
+GO
+
+CREATE PROCEDURE sproc_SplitterRemove
+@SplitterID int
+AS
+BEGIN
+	DELETE FROM Splitters
+		WHERE SplitterID = @SplitterID
+END
+GO
+
+--		SwitchBoxes
+--------------------------------------------------------
+CREATE PROCEDURE sprocGetSwitchBoxes
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SwitchBoxes
+END
+GO
+
+CREATE PROCEDURE sprocGetSwitchBox
+@SwitchBoxID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SwitchBoxes
+		WHERE SwitchBoxID = @SwitchBoxID
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchBoxAdd
+@SwitchBoxID int OUT
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO SwitchBoxes(Name)
+		VALUES(@Name)
+	SET @SwitchBoxID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchBoxUpdate
+@SwitchBoxID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE SwitchBoxes
+		SET Name = @Name
+		WHERE SwitchBoxID = @SwitchBoxID
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchBoxRemove
+@SwitchBoxID int
+AS
+BEGIN
+	DELETE FROM SwitchBoxes
+		WHERE SwitchBoxID = @SwitchBoxID
+END
+GO
+
+--		Switches
+----------------------------------------------------
+CREATE PROCEDURE sprocGetSwitches
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Switches
+END
+GO
+
+CREATE PROCEDURE sprocGetSwitch
+@SwitchID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Switches
+		WHERE SwitchID = @SwitchID
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchAdd
+@SwitchID int OUT
+, @SwitchBoxID int
+, @FlowRegulatorID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Switches(SwitchBoxID, FlowRegulatorID, Name)
+		VALUES(@SwitchBoxID, @FlowRegulatorID, @Name)
+	SET @SwitchID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchUpdate
+@SwitchID int
+, @SwitchBoxID int
+, @FlowRegulatorID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Switches
+		SET SwitchBoxID = @SwitchBoxID
+			, FlowRegulatorID = @FlowRegulatorID
+			, Name = @Name
+		WHERE SwitchID = @SwitchID
+END
+GO
+
+CREATE PROCEDURE sproc_SwitchRemove
+@SwitchID int
+AS
+BEGIN
+	DELETE FROM Switches
+		WHERE SwitchID = @SwitchID
+END
+GO
+
+--		Systems
+--------------------------------------------------
+CREATE PROCEDURE sprocGetSystems
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Systems
+END
+GO
+
+CREATE PROCEDURE sprocGetSystem
+@SystemID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Systems
+		WHERE SystemID = @SystemID
+END
+GO
+
+CREATE PROCEDURE sproc_SystemAdd
+@SystemID int OUT
+, @Name nvarchar(20)
+, @Mutex bit
+AS
+BEGIN
+	INSERT INTO Systems(Name, Mutex)
+		VALUES(@Name, @Mutex)
+	SET @SystemID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SystemUpdate
+@SystemID int OUT
+, @Name nvarchar(20)
+, @Mutex bit
+AS
+BEGIN
+	UPDATE Systems
+		SET Name = @Name
+			, Mutex = @Mutex
+		WHERE SystemID = @SystemID
+END
+GO
+
+CREATE PROCEDURE sproc_SystemRemove
+@SystemID int
+AS
+BEGIN
+	DELETE FROM Systems
+		WHERE SystemID = @SystemID
+END
+GO
+
+CREATE PROCEDURE sproc_SystemMutexUpdate
+@SystemID int OUT
+, @Mutex bit
+AS
+BEGIN
+	UPDATE Systems
+		SET Mutex = @Mutex
+		WHERE SystemID = @SystemID
+END
+GO
+
+CREATE PROCEDURE sprocGetSystemMutex
+@SystemID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT Mutex FROM Systems
+		WHERE SystemID = @SystemID
+END
+GO
+
+--		Tanks
+------------------------------------------------
+CREATE PROCEDURE sprocGetTanks
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Tanks
+END
+GO
+
+CREATE PROCEDURE sprocGetTank
+@TankID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Tanks
+		WHERE TankID = @TankID
+END
+GO
+
+CREATE PROCEDURE sproc_TankAdd
+@TankID int OUT
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter int
+, @Distance int
+AS
+BEGIN
+	INSERT INTO Tanks(GradeID, MaterialID, 
+			Name, Diameter, Distance)
+		VALUES(@GradeID, @MaterialID, 
+			@Name, @Diameter, @Distance)
+	SET @TankID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_TankUpdate
+@TankID int
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter float
+, @Distance float
+AS
+BEGIN
+	UPDATE Tanks
+		SET GradeID = @GradeID
+			, MaterialID = @MaterialID
+			, [Name] = @Name
+			, Diameter = @Diameter
+			, Distance = @Distance
+		WHERE TankID = @TankID 
+END
+GO
+
+CREATE PROCEDURE sproc_TankRemove
+@TankID int
+AS
+BEGIN
+	DELETE FROM Tanks
+		WHERE TankID = @TankID
+END
+GO
+
+--		Transporters
+------------------------------------------------
+/*
+CREATE PROCEDURE sprocGetTransporters
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Transporters
+END
+GO
+
+CREATE PROCEDURE sprocGetTransporter
+@TransporterID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Transporters
+		WHERE TransporterID = @TransporterID
+END
+GO
+
+CREATE PROCEDURE sproc_TransporterAdd
+@TransporterID int OUT
+AS
+BEGIN
+	INSERT INTO Transporters
+	SET @TransporterID = @@IDENTITY
+END
+GO
+
+
+CREATE PROCEDURE sproc_TransporterUpdate
+@TransporterID int
+AS
+BEGIN
+	UPDATE Transporters
+		WHERE TransporterID = @TransporterID
+END
+GO
+
+CREATE PROCEDURE sproc_TransporterRemove
+@TransporterID int
+AS
+BEGIN
+	DELETE FROM Transporters
+		WHERE TransporterID = @TransporterID
+END
+GO*/
+
+--		Tubes
+----------------------------------------------------
+CREATE PROCEDURE sprocGetTubes
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Tubes
+END
+GO
+
+CREATE PROCEDURE sprocGetTube
+@TubeID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Tubes
+		WHERE TubeID = @TubeID
+END
+GO
+
+CREATE PROCEDURE sproc_TubeAdd
+@TubeID int OUT
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter float
+, @Distance float
+AS
+BEGIN
+	INSERT INTO Tubes(GradeID, MaterialID, Name, 
+			Diameter, Distance)
+		VALUES(@GradeID, @MaterialID, @Name, 
+			@Diameter, @Distance)
+	SET @TubeID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_TubeUpdate
+@TubeID int
+, @GradeID int
+, @MaterialID int
+, @Name nvarchar(20)
+, @Diameter float
+, @Distance float
+AS
+BEGIN
+	UPDATE Tubes
+		SET GradeID = @GradeID
+			, MaterialID = @MaterialID
+			, Name = @Name
+			, Diameter = @Diameter
+			, Distance = @Distance
+		WHERE TubeID = @TubeID 
+END
+GO
+
+CREATE PROCEDURE sproc_TubeRemove
+@TubeID int
+AS
+BEGIN
+	DELETE FROM Tubes
+		WHERE TubeID = @TubeID
+END
+GO
+
+--		Values
+----------------------------------------------------
+CREATE PROCEDURE sprocGetValues
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM [Values]
+END
+GO
+
+CREATE PROCEDURE sprocGetValue
+@ValueID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM [Values]
+		WHERE ValueID = @ValueID
+END
+GO
+
+CREATE PROCEDURE sproc_ValueAdd
+@ValueID int OUT
+, @PartID int
+, @ReadingID int
+, @Name nvarchar(20)
+, @LocationFromStart float
+, @Value float
+AS
+BEGIN
+	INSERT INTO [Values](PartID, ReadingID, Name, LocationFromStart, Value)
+		VALUES(@PartID, @ReadingID, @Name, @LocationFromStart, @Value)
+	SET @ValueID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ValueUpdate
+@ValueID int OUT
+, @PartID int
+, @ReadingID int
+, @Name nvarchar(20)
+, @LocationFromStart float
+, @Value float
+AS
+BEGIN
+	UPDATE [Values]
+		SET PartID = @PartID
+			, ReadingID = @ReadingID
+			, Name = @Name
+			, LocationFromStart = @LocationFromStart
+			, Value = @Value
+		WHERE ValueID = @ValueID
+END
+GO
+
+CREATE PROCEDURE sproc_ValueRemove
+@ValueID int
+AS
+BEGIN
+	DELETE FROM [Values]
+		WHERE ValueID = @ValueID
+END
+GO
+
+--		Valves
+-------------------------------------------------------
+CREATE PROCEDURE sprocGetValves
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Valves
+END
+GO
+
+CREATE PROCEDURE sprocGetValve
+@ValveID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Valves
+		WHERE ValveID = @ValveID
+END
+GO
+
+CREATE PROCEDURE sproc_ValveAdd
+@ValveID int OUT
+, @FlowRegulatorID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	INSERT INTO Valves(FlowRegulatorID, Name)
+		VALUES(@FlowRegulatorID, @Name)
+	SET @ValveID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ValveUpdate
+@ValveID int
+, @FlowRegulatorID int
+, @Name nvarchar(20)
+AS
+BEGIN
+	UPDATE Valves
+		SET FlowRegulatorID = @FlowRegulatorID
+			, Name = @Name
+		WHERE ValveID = @ValveID
+END
+GO
+
+CREATE PROCEDURE sproc_ValveRemove
+@ValveID int
+AS
+BEGIN
+	DELETE FROM Valves
+		WHERE ValveID = @ValveID
+END
+GO
+
+
+--		Pictures
+-------------------------------------------------------
+CREATE PROCEDURE sprocGetPictures
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pictures
+END
+GO
+
+CREATE PROCEDURE sprocGetPicture
+@PictureID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Pictures
+		WHERE PictureID = @PictureID
+END
+GO
+
+CREATE PROCEDURE sproc_PictureAdd
+@PictureID int OUT
+, @FileName nvarchar(30)
+, @PartName nvarchar(25)
+AS
+BEGIN
+	INSERT INTO Pictures(FileName, PartName)
+		VALUES(@FileName, @PartName)
+	SET @PictureID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_PictureUpdate
+@PictureID int OUT
+, @FileName nvarchar(30)
+, @PartName nvarchar(25)
+AS
+BEGIN
+	UPDATE Pictures
+		SET [FileName] = @FileName
+			, PartName = @PartName
+		WHERE PictureID = @PictureID
+END
+GO
+
+CREATE PROCEDURE sproc_PictureRemove
+@PictureID int
+AS
+BEGIN
+	DELETE FROM Pictures
+		WHERE PictureID = @PictureID
+END
+GO
+
+--		SystemToClients
+-------------------------------------------------------
+CREATE PROCEDURE sprocGetSystemToClients
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SystemToClients
+END
+GO
+
+CREATE PROCEDURE sprocGetSystemToClient
+@SystemToClientID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM SystemToClients
+		WHERE SystemToClientID = @SystemToClientID
+END
+GO
+
+CREATE PROCEDURE sproc_SystemToClientAdd
+@SystemToClientID int OUT
+, @SystemID int
+, @ClientID int
+AS
+BEGIN
+	INSERT INTO SystemToClients(SystemID, ClientID)
+		VALUES(@SystemID, @ClientID)
+	SET @SystemToClientID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_SystemToClientUpdate
+@SystemToClientID int OUT
+, @SystemID int
+, @ClientID int
+AS
+BEGIN
+	UPDATE SystemToClients
+		SET SystemID = @SystemID
+			, ClientID = @ClientID
+		WHERE SystemToClientID = @SystemToClientID
+END
+GO
+
+CREATE PROCEDURE sproc_SystemToClientRemove
+@SystemToClientID int
+AS
+BEGIN
+	DELETE FROM SystemToClients
+		WHERE SystemToClientID = @SystemToClientID
+END
+GO
+
+------------------------------------------------
+-- Client Procedures
+------------------------------------------------
+CREATE PROCEDURE sprocGetClients
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Clients
+END
+GO
+
+CREATE PROCEDURE sprocGetClient
+@ClientID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Clients
+		WHERE ClientID = @ClientID
+END
+GO
+
+CREATE PROCEDURE sproc_ClientAdd
+@ClientID int OUT
+, @ClientName nvarchar(35)
+, @ClientMutex bit
+AS
+BEGIN
+	INSERT INTO Clients(ClientName, ClientMutex)
+		VALUES(@ClientName, @ClientMutex)
+	SET @ClientID = @@IDENTITY
+END
+GO
+
+CREATE PROCEDURE sproc_ClientUpdate
+@ClientID int OUT
+, @ClientName nvarchar(35)
+, @ClientMutex bit
+AS
+BEGIN
+	UPDATE Clients
+		SET ClientName = @ClientName
+			, ClientMutex = @ClientMutex
+		WHERE ClientID = @ClientID
+END
+GO
+
+CREATE PROCEDURE sproc_ClientRemove
+@ClientID int
+AS
+BEGIN
+	DELETE FROM Clients
+		WHERE ClientID = @ClientID
+END
+GO
+
+CREATE PROCEDURE sproc_ClientMutexUpdate
+@ClientID int
+, @ClientMutex bit
+AS
+BEGIN
+	UPDATE Clients
+		SET ClientMutex = @ClientMutex
+		WHERE ClientID = @ClientID
+END
+GO
+
+CREATE PROCEDURE sproc_GetAllClientsBySystem
+@SystemID int
+AS
+BEGIN
+	SELECT ClientID FROM SystemToClients
+		WHERE SystemID = @SystemID
+END
+GO
+
+
+-- Can return mutiple Unless Name is checked.
+CREATE PROCEDURE sprocGetClientByName
+@ClientName nvarchar(35)
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Clients
+		WHERE ClientName = @ClientName
+END
+GO
+
+CREATE PROCEDURE sprocGetClientMutex
+@ClientID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT ClientMutex FROM Clients
+		WHERE ClientID = @ClientID
+END
+GO
+
+------------------------------------------------
+-- Additional Procedures
+------------------------------------------------
+CREATE PROCEDURE sprocGetAllPartsIs
+@PartName nvarchar(10)
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Parts
+		WHERE @PartName > 0
+END
+GO
+
+CREATE PROCEDURE sprocGetAssessmentsByContentID
+@ContentID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM Assessments
+		WHERE ContentID = @ContentID;
+END
+GO
+
+CREATE PROCEDURE sprocGetValuesByPartID
+@PartID int
+AS
+BEGIN
+	SET NOCOUNT ON
+	SELECT * FROM [Values]
+		WHERE PartID = @PartID;
+END
+GO
+
+CREATE PROCEDURE sprocGetConnentsOfPart
+@PartID int
+AS
+BEGIN
+	SET NOCOUNT ON
+		SELECT [Name] FROM Contents
+			WHERE PartID = @PartID
+END
+GO
+
+CREATE PROCEDURE sprocGetValueOfPartWithReading
+@PartID int
+, @ReadingName nvarchar(25)
+AS
+BEGIN
+	SET NOCOUNT ON
+		SELECT [Value] FROM [Values]
+			WHERE PartID = @PartID
+				AND ReadingID = ReadingID
+					SELECT ReadingID FROM Readings
+						WHERE Name = @ReadingName
+END
+GO
+
+CREATE PROCEDURE sprocGetValueOfSensorWithReading
+@SensorID int
+, @ReadingName nvarchar(25)
+AS
+BEGIN
+	SET NOCOUNT ON
+		SELECT [Value] FROM [Values]
+			WHERE ValueID = ValueID
+				AND ReadingID = ReadingID
+					SELECT ReadingID FROM Readings
+						WHERE Name = @ReadingName
+					SELECT ValueID FROM SensorToValues
+						WHERE SensorID = @SensorID
+END
+GO
