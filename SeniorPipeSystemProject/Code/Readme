@@ -1,3 +1,8 @@
 Contains all code created for the project.
 
 Worked on Class Tables code with Nathan Thompson. Labled any code that I did as such.
+
+Did all of the SQLCode file. While it is not normal to constantly delete and reconstruct the Database.
+I wrote the SQL to be able to construct it by simply running the code provided since the project Database was relatively small in size
+and not alot of preset data was needed. 
+(Note will have to remove the DELETE codes if running for the first time.)
