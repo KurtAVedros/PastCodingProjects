@@ -15,8 +15,8 @@ namespace SystemBuildingDevelopment
 {
     public class DAL
     {
-        private static string ReadOnlyConnectionString = "Server=mssql.cs.iri.isu.edu;Database=CS4488_Fall2018_Prod;User Id=SoftwareAccessAccount;Password=Sigma159$;";
-        private static string EditOnlyConnectionString = "Server=mssql.cs.iri.isu.edu;Database=CS4488_Fall2018_Prod;User Id=SoftwareAccessAccount;Password=Sigma159$;";
+        private static string ReadOnlyConnectionString = "CANNOTSTATEHERE";
+        private static string EditOnlyConnectionString = "CANNOTSTATEHERE";
 
         private DAL()
         {
