@@ -6,3 +6,23 @@ images. Any code I did not write I will state as predone code.
 
 Due to legal reasons, I will not show any images used for this project or the names of the images. However you should beable to
 tell how the image was uploaded and used.
+
+For Database I had to make minor changes such as removing Materials and Second Materials as well as relocating the information
+on the separate ReDiscov database. Changes to the procedures was done as necessary to diplay the correct information.
+
+For Uploading information to the database, I created and used the SQLINFOUploader program I created as well as a free application
+called Image Composite Editor to splice the image for Deep Zoom and gimp2 for creating thumbnail images. Note the images had to be
+of high quality. Usually around 9000x12000 size.
+
+For website edits I mainly had to make changes to text, icon, layout, navigation and image display. Since this was mainly making
+small edits to predone code. I will not show the code, without consent from Idaho State Historical society.
+
+Example of required edits below.
+    Change century description to this "".
+    There should be a navigation tool bar across the top such as
+       Home / century / artifactCommonName
+    Change icon and color scheme to accomidate for the new ISHS style.
+    Change all the font to necessary font type.
+    Change sample image carousel located at the homepage to display these images.
+    Create footer links to our home site and legal information.
+    
