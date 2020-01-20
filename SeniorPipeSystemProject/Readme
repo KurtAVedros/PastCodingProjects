@@ -1,4 +1,8 @@
 This was my senior project for Bachelors degree in Computer Science.
+
+The goal was to create a program that could successfully show and maintain a piping system though simulation. This included having the
+ability to build the system and test it with readings such as flow rate.
+
 I was in charge with creating and maitaining a Database through MS SQL and connecting the Database to the project 
 with a Database Access Layer as well as creating documentation.
 
